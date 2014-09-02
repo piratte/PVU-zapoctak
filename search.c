@@ -14,6 +14,7 @@ bool search(char *filename, char *needle, bool loutput) {
 	FILE *fptr;
 	char *prev, *cur, *next, *tmp;
 	char *res, *out;
+	printf("searching %s for %s\n", filename, needle );
 
 	/* allocating mem for reading lines */
 	cur = (char*) calloc(MAXLINE, sizeof(char));
@@ -66,8 +67,6 @@ bool search(char *filename, char *needle, bool loutput) {
 		}
 	}
 
-	// TODO search through the last line
-
 	//char *res = strstr();
 	out = join(out,"==========================================\n");
 	fclose(fptr);
@@ -79,9 +78,11 @@ bool search(char *filename, char *needle, bool loutput) {
 /*kdyz je -l zvoleno, prida to k hledane radce jeste predchozi a nasledujici*/
 char *addres(char *out, char *prev, char *cur, char *next, bool loutput) {
 	if (loutput) {
-		out = join(out, prev);
+		if (prev)
+			out = join(out, prev);
 		out = join(out, cur);
-		out = join(out, next);
+		if (next)
+			out = join(out, next);
 		out = join(out, "---\n");
 		//printf("after joins: %s\n", out);
 	}
