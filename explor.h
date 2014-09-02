@@ -3,6 +3,6 @@
 
 #include "search.h"
 
-int explor(char *dirname,char *needle);
+int explor(char *dirname,char *needle, bool lout);
 
 #endif /* __EXPLOR_H */

@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 
-bool search(char *filename, char *needle);
+bool search(char *filename, char *needle, bool loutput);
 bool readln(char *line, FILE *stream);
-void addres(char *out, char *prev, char *cur, char *next);
+char *addres(char *out, char *prev, char *cur, char *next, bool loutput);
 
 char *join(const char* s1, const char* s2);
 

@@ -9,7 +9,7 @@
 
 #include "explor.h"
 
-int explor(char *dirname, char *needle) {
+int explor(char *dirname, char *needle, bool loutput) {
 	char *lom = "/"; 
 	DIR *d;
 	struct dirent *de;
@@ -21,7 +21,8 @@ int explor(char *dirname, char *needle) {
 		return (-1); 
 	}
 
-	printf("== [%s] ==\n", dirname);
+	/* info print */
+	// printf("== [%s] ==\n", dirname);
 
 	errno = 0;
 	while ((de = readdir(d)) != NULL) {
@@ -38,7 +39,7 @@ int explor(char *dirname, char *needle) {
 				errx(2, "problem with stat on file %s\n", name);
 				
       /* files are searched, dirs are explored */
-		S_ISDIR(stats.st_mode) ? explor(name, needle) : search(name, needle);
+		S_ISDIR(stats.st_mode) ? explor(name, needle, loutput) : search(name, needle, loutput);
 
 		if (errno != 0)
 				warn("%s", name);

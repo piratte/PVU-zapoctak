@@ -9,8 +9,8 @@
 
 #include "explor.h"
 
-bool cont;
 char *needle;
+bool loutput;
 
 
 // bool search(char *filename) {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	char *optv[optc], *dirname;
 
 	
-	cont = false;
+	loutput = false;
 	/* last 2 args are PATTERN and DIR */
 	needle = argv[argc - 2];
 	dirname = argv[argc - 1];
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	while ((c = getopt(optc, optv, "l")) != -1) {
 	switch (c) {
 		case 'l':
-			cont = true;
+			loutput = true;
 			break;
 		default:
 			fprintf(stderr, "Incorect param., use -l -1\n");
@@ -90,6 +90,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	explor(dirname, needle);
+	explor(dirname, needle, loutput);
 	return (0);
 }

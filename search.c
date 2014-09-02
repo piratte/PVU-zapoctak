@@ -9,7 +9,7 @@
 
 #define MAXLINE 512
 
-bool search(char *filename, char *needle) {
+bool search(char *filename, char *needle, bool loutput) {
 
 	FILE *fptr;
 	char *prev, *cur, *next, *tmp;
@@ -27,8 +27,8 @@ bool search(char *filename, char *needle) {
 
 	out = join(out, filename);
 	out = join(out, ": \n");
-	// test-write
-	printf("%s",out);
+	/* test-write
+	printf("%s",out); */
 
 	/* opening file */
 	if (!(fptr = fopen(filename, "r"))) {
@@ -48,7 +48,7 @@ bool search(char *filename, char *needle) {
 
     /* pattern found */
 	if ((res = strstr(cur, needle)) != NULL) {
-		addres(out, NULL, cur, NULL);
+		addres(out, NULL, cur, NULL, false);
 	}
 
 	while(next != NULL) {
@@ -61,22 +61,33 @@ bool search(char *filename, char *needle) {
     		next = NULL;
     
 		if ((res = strstr(cur, needle)) != NULL) {
-			addres(out, prev, cur, next);
+			out = addres(out, prev, cur, next, loutput);
+			//printf("after adress: %s\n", out);
 		}
 	}
 
 	// TODO search through the last line
 
 	//char *res = strstr();
-	printf("%s\n==========================================\n", out);
+	out = join(out,"==========================================\n");
 	fclose(fptr);
-	free(out);
+	printf("%s", out);
+	free(out); free(cur); free(next); free(prev); free(tmp);
 	return (true);
 }
 
-/* kdyz je -l zvoleno, prida to k hledane radce jeste predchozi a nasledujici*/
-void addres(char *out, char *prev, char *cur, char *next) {
-	printf("found\n");
+/*kdyz je -l zvoleno, prida to k hledane radce jeste predchozi a nasledujici*/
+char *addres(char *out, char *prev, char *cur, char *next, bool loutput) {
+	if (loutput) {
+		out = join(out, prev);
+		out = join(out, cur);
+		out = join(out, next);
+		out = join(out, "---\n");
+		//printf("after joins: %s\n", out);
+	}
+	else
+		out = join(out,cur); 
+	return out;
 }
 
 /* do *line nacte radku ze *stream a vrati false pokud neuspeje */
@@ -102,6 +113,6 @@ char *join(const char* s1, const char* s2)
         strcpy(result, s1);
         strcat(result, s2);
     }
-
+    //printf("join returning: %s\n",result );
     return result;
 }
