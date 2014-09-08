@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 #include <errno.h>
 #include <err.h>
@@ -15,7 +15,8 @@
 #include "main.h"
 
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	int i, optc, erro;
 	char c = ' ';
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
 	pthread_cond_init(empty, NULL);
 	ind = -1;
 	end = false;
-	names = (char**)malloc(sizeof(char*));
+	names = (char **) malloc(sizeof (char *));
 
 	/* parsing arguments except last two */
 	optc = argc - 2;
@@ -58,20 +59,19 @@ int main(int argc, char *argv[])
 	}
 
 	/* creating worker threads */
-	for (i = 0; i < NUM_THREADS; ++i)
-	{
-		if ((erro = (pthread_create(&thread[i], NULL, thr_run, NULL)) != 0))
+	for (i = 0; i < NUM_THREADS; ++i) {
+		if ((erro =
+			(pthread_create(&thread[i], NULL, thr_run, NULL)) != 0))
 		    errx(1, "pthread_create: %s", strerror(erro));
 	}
-	fprintf(stderr, "threads created\n");
+	// fprintf(stderr, "threads created\n");
 
 	explor(dirname, true);
 
-	for (i = 0; i < NUM_THREADS; ++i)
-	{
+	for (i = 0; i < NUM_THREADS; ++i) {
 		pthread_join(thread[i], NULL);
 	}
-	fprintf(stderr, "all done\n");
+	// fprintf(stderr, "all done\n");
 
 	return (0);
 }
