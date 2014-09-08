@@ -7,71 +7,38 @@
 #include <err.h>
 #include <memory.h>
 
+#include <pthread.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
 #include "explor.h"
-
-char *needle;
-bool loutput;
-
-
-// bool search(char *filename) {
-// 	printf("searching: %s\n", filename);
-// 	return (true);
-// }h
-
-
-// int explor(char *dirname) {
-// 	DIR *d;
-// 	struct dirent *de;
-// 	char *name;
-// 	struct stat stats;
-
-// 	if ((d = opendir(dirname)) == NULL) {
-// 		warn("%s", dirname);
-// 		return (-1); 
-// 	}
-
-// 	printf("== [%s] ==\n", dirname);
-
-// 	errno = 0;
-// 	while ((de = readdir(d)) != NULL) {
-// 		/* filtering out dirs . and .. */
-// 		if (de->d_name[0] == '.') 
-// 			continue;
-// 		/* composing filename */
-// 		name = (char *) malloc(2 + strlen(dirname) + strlen(de->d_name));
-// 		strcpy(name, dirname);
-// 		strcat(name, lom);
-// 		strcat(name, de->d_name);
-// 		/* figuring out, whether file or dir*/
-// 		if (stat(name, &stats) < 0)
-// 				errx(2, "problem with stat on file %s\n", name);
-				
-//       /* files are searched, dirs are explored */
-// 		S_ISDIR(stats.st_mode) ? explor(name) : search(name) ;
-
-// 		if (errno != 0)
-// 				warn("%s", name);
-// 	}
-// 	closedir(d);
-// 	return (true);
-// }
+#include "main.h"
 
 
 int main(int argc, char *argv[])
 {
-	int i, optc;
+	int i, optc, erro;
 	char c = ' ';
 
 	if (argc < 2)
 			errx(1, "usage: %s [-l] PATTERN DIR", argv[0]);
 
+	/* init of global vars */
+	loutput = false;
+	outmut = &mutex_out;
+	arrmut = &mutex_arr;
+	empty = &empty_cond;
+	pthread_mutex_init(outmut, NULL);
+	pthread_mutex_init(arrmut, NULL);
+	pthread_cond_init(empty, NULL);
+	ind = -1;
+	end = false;
+	names = (char**)malloc(sizeof(char*));
+
 	/* parsing arguments except last two */
 	optc = argc - 2;
-
 	char *optv[optc], *dirname;
 
-	
-	loutput = false;
 	/* last 2 args are PATTERN and DIR */
 	needle = argv[argc - 2];
 	dirname = argv[argc - 1];
@@ -90,6 +57,21 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	explor(dirname, needle, loutput);
+	/* creating worker threads */
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		if ((erro = (pthread_create(&thread[i], NULL, thr_run, NULL)) != 0))
+		    errx(1, "pthread_create: %s", strerror(erro));
+	}
+	fprintf(stderr, "threads created\n");
+
+	explor(dirname, true);
+
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		pthread_join(thread[i], NULL);
+	}
+	fprintf(stderr, "all done\n");
+
 	return (0);
 }

@@ -2,14 +2,18 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <errno.h>
 #include <err.h>
 #include <memory.h>
 
 #include "explor.h"
+#include "main.h"
+#include "search.h"
 
-int explor(char *dirname, char *needle, bool loutput) {
+int explor(char *dirname, bool top) {
 	char *lom = "/"; 
 	DIR *d;
 	struct dirent *de;
@@ -38,12 +42,56 @@ int explor(char *dirname, char *needle, bool loutput) {
 		if (stat(name, &stats) < 0)
 				errx(2, "problem with stat on file %s\n", name);
 				
-      /* files are searched, dirs are explored */
-		S_ISDIR(stats.st_mode) ? explor(name, needle, loutput) : search(name, needle, loutput);
+        /* files are searched, dirs are explored */
+		S_ISDIR(stats.st_mode) ? explor(name, false) : add(name);
 
 		if (errno != 0)
 				warn("%s", name);
 	}
+	if (top) {
+		end = true;
+		pthread_cond_broadcast(empty);
+	}
 	closedir(d);
 	return (true);
+}
+
+void *thr_run(void *x) {
+	fprintf(stderr, "thread: running\n");	
+
+	/* no more producing and work is done */
+	while (!(end && (ind == -1))) {
+		pthread_mutex_lock(arrmut);
+
+		/* wait untill there is something to search, or there will be nothing more */
+		while ((ind < 0) && !end)
+			pthread_cond_wait(empty, arrmut);
+		fprintf(stderr, "thread analyzing: ind = %d\n", ind - 1);
+		char *src = get_src();
+		pthread_mutex_unlock(arrmut);
+		search(src);
+		free(src);
+	}
+	return(NULL);
+}
+
+void add(char *name) {
+	pthread_mutex_lock(arrmut);	
+	fprintf(stderr, "adding: %s, index = %d\n", name, ind);
+	++ind; 
+	names = (char**)realloc(names, (ind+1)*(sizeof(char*)));
+	names[ind] = name;
+	fprintf(stderr, "added: %s\n", name);
+
+	pthread_cond_broadcast(empty);
+	pthread_mutex_unlock(arrmut);
+}
+
+/* mutex is in the outer function */
+char *get_src() {
+	/* getting filename for analyzing */	
+	
+	char *result = names[ind];
+	--ind;
+	return (result);
 }

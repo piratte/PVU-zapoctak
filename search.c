@@ -6,15 +6,17 @@
 // #include <readline/readline.h>
 
 #include "search.h"
+#include "main.h"
 
 #define MAXLINE 512
 
-bool search(char *filename, char *needle, bool loutput) {
+bool search(char *filename) {
 
 	FILE *fptr;
 	char *prev, *cur, *next, *tmp;
 	char *res, *out;
-	printf("searching %s for %s\n", filename, needle );
+	bool found = false;
+	fprintf(stderr,"searching %s for %s\n", filename, needle );
 
 	/* allocating mem for reading lines */
 	cur = (char*) calloc(MAXLINE, sizeof(char));
@@ -49,7 +51,8 @@ bool search(char *filename, char *needle, bool loutput) {
 
     /* pattern found */
 	if ((res = strstr(cur, needle)) != NULL) {
-		addres(out, NULL, cur, NULL, false);
+		addres(out, NULL, cur, NULL);
+		found = true;
 	}
 
 	while(next != NULL) {
@@ -62,21 +65,27 @@ bool search(char *filename, char *needle, bool loutput) {
     		next = NULL;
     
 		if ((res = strstr(cur, needle)) != NULL) {
-			out = addres(out, prev, cur, next, loutput);
-			//printf("after adress: %s\n", out);
+			out = addres(out, prev, cur, next);
+			found = true;
+			//fprintf(stderr,"after adress: %s\n", out);
 		}
 	}
 
 	//char *res = strstr();
-	out = join(out,"==========================================\n");
+	
 	fclose(fptr);
-	printf("%s", out);
+	if (found) {
+		out = join(out,"==========================================\n");
+		pthread_mutex_lock(outmut);
+		printf("%s", out);
+		pthread_mutex_unlock(outmut);
+	}
 	free(out); free(cur); free(next); free(prev); free(tmp);
 	return (true);
 }
 
 /*kdyz je -l zvoleno, prida to k hledane radce jeste predchozi a nasledujici*/
-char *addres(char *out, char *prev, char *cur, char *next, bool loutput) {
+char *addres(char *out, char *prev, char *cur, char *next) {
 	if (loutput) {
 		if (prev)
 			out = join(out, prev);
