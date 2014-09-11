@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <errno.h>
 #include <err.h>
@@ -61,12 +62,15 @@ void *
 thr_run(void *x) {
 	// fprintf(stderr, "thread: running\n");
 
+
+
 	/* no more producing and work is done */
 	while (!(end && (ind == -1))) {
 		/*
-		 *wait untill there is something to search,
-		 *or there will be nothing more
+		 * wait untill there is something to search,
+		 * or there will be nothing more
 		 */
+
 		pthread_mutex_lock(arrmut);
 		while ((ind < 0) && !end)
 			pthread_cond_wait(empty, arrmut);

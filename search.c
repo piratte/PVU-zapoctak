@@ -6,7 +6,7 @@
 #include "search.h"
 #include "main.h"
 
-#define	MAXLINE 512
+#define	DEFAULT_LINE 200
 
 bool
 search(char *filename) {
@@ -18,10 +18,10 @@ search(char *filename) {
 	// fprintf(stderr,"searching %s for %s\n", filename, needle );
 
 	/* allocating mem for reading lines */
-	cur = (char *) calloc(MAXLINE, sizeof (char));
-	next = (char *) calloc(MAXLINE, sizeof (char));
-	tmp = (char *) calloc(MAXLINE, sizeof (char));
-	prev = (char *) calloc(MAXLINE, sizeof (char));
+	cur = (char *) calloc(DEFAULT_LINE, sizeof (char));
+	next = (char *) calloc(DEFAULT_LINE, sizeof (char));
+	tmp = (char *) calloc(DEFAULT_LINE, sizeof (char));
+	prev = (char *) calloc(DEFAULT_LINE, sizeof (char));
 
 	/* memory for output string */
 	out = malloc(strlen("searching "));
@@ -37,14 +37,11 @@ search(char *filename) {
 	}
 
 	/* empty file */
-	if (readln(cur, fptr) == false) {
+	if ((next = readln(next, fptr)) == NULL) {
 		return (true);
 	}
 
-	/* one line file test */
-	if (readln(next, fptr) == false) {
-		next = NULL;
-	}
+	next = readln(next, fptr);
 
 	/* pattern found */
 	if ((res = strstr(cur, needle)) != NULL) {
@@ -58,8 +55,8 @@ search(char *filename) {
 		cur = next;
 		next = tmp;
 
-		if (readln(next, fptr) == false)
-			next = NULL;
+		next = readln(next, fptr);
+		// fprintf(stderr, "cur: %s\n", cur);
 
 		if ((res = strstr(cur, needle)) != NULL) {
 			out = addres(out, prev, cur, next);
@@ -97,15 +94,16 @@ addres(char *out, char *prev, char *cur, char *next) {
 }
 
 /* do *line nacte radku ze *stream a vrati false pokud neuspeje */
-bool
+
+char *
 readln(char *line, FILE *stream) {
-	char *cptr;
-	/* test write printf("rln\n"); */
-	if ((cptr = fgets(line, MAXLINE, stream)) != NULL) {
-		return (true);
+	int n;
+	size_t lines = strlen(line);
+	if ((n = getline(&line, &lines, stream)) != -1) {
+		return (line);
 	}
 	else
-		return (false);
+		return (NULL);
 }
 
 char *

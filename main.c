@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <errno.h>
 #include <err.h>
@@ -20,10 +21,16 @@ main(int argc, char *argv[])
 {
 	int i, optc, erro;
 	char c = ' ';
+	char *t = "-h";
 
-	if (argc < 2)
-			errx(1, "usage: %s [-l] PATTERN DIR", argv[0]);
-
+	if (argc < 3) {
+		if ((argc == 2) && (strstr(argv[1], t) != NULL)) {
+			printf("usage: %s [-l] PATTERN DIR\n", argv[0]);
+			printf("parameter -l turns on context output\n");
+			exit(0);
+		}
+		errx(1, ERR);
+	}
 	/* init of global vars */
 	loutput = false;
 	outmut = &mutex_out;
@@ -47,15 +54,18 @@ main(int argc, char *argv[])
 	for (i = 0; i < optc; ++i)
 		optv[i] = argv[i];
 
-	while ((c = getopt(optc, optv, "l")) != -1) {
-	switch (c) {
-		case 'l':
-			loutput = true;
-			break;
-		default:
-			fprintf(stderr, "Incorect param., use -l -1\n");
-			abort();
-		}
+	while ((c = getopt(optc, optv, "lh")) != -1) {
+		switch (c) {
+			case 'l':
+				loutput = true;
+				break;
+			case 'h':
+				printf("usage: %s [-l] PATTERN DIR", argv[0]);
+				printf("parameter -l turns on context output");
+				break;
+			default:
+				errx(1, ERR);
+			}
 	}
 
 	/* creating worker threads */
