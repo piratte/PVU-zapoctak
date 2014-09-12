@@ -69,7 +69,7 @@ search(char *filename) {
 	if (found) {
 		out = join(out, "==========================================\n");
 		pthread_mutex_lock(outmut);
-		printf("%s", out);
+		fprintf(fout,"%s", out);
 		pthread_mutex_unlock(outmut);
 	}
 	free(out); free(cur); free(next); free(prev); free(tmp);

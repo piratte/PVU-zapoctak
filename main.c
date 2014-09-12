@@ -21,10 +21,11 @@ main(int argc, char *argv[])
 {
 	int i, optc, erro;
 	char c = ' ';
-	char *t = "-h";
+	char *h = "-h";
+	char *infile = NULL;
 
 	if (argc < 3) {
-		if ((argc == 2) && (strstr(argv[1], t) != NULL)) {
+		if ((argc == 2) && (strstr(argv[1], h) != NULL)) {
 			printf("usage: %s [-l] PATTERN DIR\n", argv[0]);
 			printf("parameter -l turns on context output\n");
 			exit(0);
@@ -54,7 +55,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < optc; ++i)
 		optv[i] = argv[i];
 
-	while ((c = getopt(optc, optv, "lh")) != -1) {
+	while ((c = getopt(optc, optv, "lho:")) != -1) {
 		switch (c) {
 			case 'l':
 				loutput = true;
@@ -63,10 +64,22 @@ main(int argc, char *argv[])
 				printf("usage: %s [-l] PATTERN DIR", argv[0]);
 				printf("parameter -l turns on context output");
 				break;
+			case 'o':
+				infile = optarg;
+				break;
 			default:
 				errx(1, ERR);
 			}
 	}
+
+	if (infile) {
+		if (!(fout = fopen(infile, "w"))) {
+			perror(infile);
+			exit(1);
+		}
+	}
+	else
+		fout = stdout;
 
 	/* creating worker threads */
 	for (i = 0; i < NUM_THREADS; ++i) {

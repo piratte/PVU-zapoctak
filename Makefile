@@ -9,6 +9,6 @@ all: $(PROG)
 $(PROG): $(OBJS)
 	$(CC) $(CFLAGS) -o $(PROG) $(OBJS) $(LIBS)
 clean: 
-	rm -f *.o main
+	rm -f *.o $(PROG)
 clear: 	
-	rm -f *.o main
+	rm -f *.o $(PROG)

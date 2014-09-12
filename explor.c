@@ -45,7 +45,14 @@ explor(char *dirname, bool top) {
 		if (stat(name, &stats) < 0)
 				errx(2, "problem with stat on file %s\n", name);
 		/* files are searched, dirs are explored */
-		S_ISDIR(stats.st_mode) ? explor(name, false) : add(name);
+		if (S_ISDIR(stats.st_mode))
+			explor(name, false);
+		else {
+			pthread_mutex_lock(arrmut);
+			add(name);
+			pthread_cond_broadcast(empty);
+			pthread_mutex_unlock(arrmut);
+		}
 
 		if (errno != 0)
 				warn("%s", name);
@@ -63,15 +70,13 @@ thr_run(void *x) {
 	// fprintf(stderr, "thread: running\n");
 
 
-
+	pthread_mutex_lock(arrmut);
 	/* no more producing and work is done */
 	while (!(end && (ind == -1))) {
 		/*
 		 * wait untill there is something to search,
 		 * or there will be nothing more
 		 */
-
-		pthread_mutex_lock(arrmut);
 		while ((ind < 0) && !end)
 			pthread_cond_wait(empty, arrmut);
 
@@ -80,26 +85,24 @@ thr_run(void *x) {
 			break;
 		}
 
-		// fprintf(stderr, "thread analyzing: ind = %d\n", ind - 1);
+		// fprintf(stderr, "thread %d analyzing: ind = %d\n", pthread_self(),ind - 1);
 		char *src = get_src();
 		pthread_mutex_unlock(arrmut);
 		search(src);
 		free(src);
+		pthread_mutex_lock(arrmut);
 	}
+	pthread_mutex_unlock(arrmut);
 	return (NULL);
 }
 
 void
 add(char *name) {
-	pthread_mutex_lock(arrmut);
 	// fprintf(stderr, "adding: %s, index = %d\n", name, ind);
 	++ind;
 	names = (char **) realloc(names, (ind+1)*(sizeof (char *)));
 	names[ind] = name;
 	// fprintf(stderr, "added: %s\n", name);
-
-	pthread_cond_broadcast(empty);
-	pthread_mutex_unlock(arrmut);
 }
 
 /* mutex is in the outer function */
