@@ -26,8 +26,7 @@ main(int argc, char *argv[])
 
 	if (argc < 3) {
 		if ((argc == 2) && (strstr(argv[1], h) != NULL)) {
-			printf("usage: %s [-l] PATTERN DIR\n", argv[0]);
-			printf("parameter -l turns on context output\n");
+			print_usage(argv[0]);
 			exit(0);
 		}
 		errx(1, ERR);
@@ -61,8 +60,7 @@ main(int argc, char *argv[])
 				loutput = true;
 				break;
 			case 'h':
-				printf("usage: %s [-l] PATTERN DIR", argv[0]);
-				printf("parameter -l turns on context output");
+				print_usage(argv[0]);
 				break;
 			case 'o':
 				infile = optarg;
@@ -97,4 +95,11 @@ main(int argc, char *argv[])
 	// fprintf(stderr, "all done\n");
 
 	return (0);
+}
+
+void print_usage(char *prog) {
+	fprintf(stderr, "usage: %s [-l] [-o OUTFILE] PATTERN DIR\n", prog);
+	fprintf(stderr, "parameter -l turns on context output\n");
+	fprintf(stderr, "-o OUTFILE specifies the output file,");
+	fprintf(stderr, " default is stdout\n");
 }

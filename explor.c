@@ -85,7 +85,6 @@ thr_run(void *x) {
 			break;
 		}
 
-		// fprintf(stderr, "thread %d analyzing: ind = %d\n", pthread_self(),ind - 1);
 		char *src = get_src();
 		pthread_mutex_unlock(arrmut);
 		search(src);
