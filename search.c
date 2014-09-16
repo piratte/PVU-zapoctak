@@ -37,7 +37,7 @@ search(char *filename) {
 	}
 
 	/* empty file */
-	if ((next = readln(next, fptr)) == NULL) {
+	if ((cur = readln(cur, fptr)) == NULL) {
 		return (true);
 	}
 
@@ -45,7 +45,8 @@ search(char *filename) {
 
 	/* pattern found */
 	if ((res = strstr(cur, needle)) != NULL) {
-		addres(out, NULL, cur, NULL);
+		// fprintf(stderr, "found on line 1\n");
+		out = addres(out, NULL, cur, next);
 		found = true;
 	}
 
@@ -79,6 +80,7 @@ search(char *filename) {
 /* kdyz je -l zvoleno, prida to k hledane radce jeste predchozi a nasledujici */
 char *
 addres(char *out, char *prev, char *cur, char *next) {
+	// fprintf(stderr, "cur: %s\n", cur);
 	if (loutput) {
 		if (prev)
 			out = join(out, prev);
@@ -88,8 +90,10 @@ addres(char *out, char *prev, char *cur, char *next) {
 		out = join(out, "---\n");
 		// fprintf(stderr,"after joins: %s\n", out);
 	}
-	else
+	else {
 		out = join(out, cur);
+		// fprintf(stderr,"after join: %s\n", out);
+	} 
 	return (out);
 }
 

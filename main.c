@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include <errno.h>
 #include <err.h>
@@ -14,6 +17,7 @@
 
 #include "explor.h"
 #include "main.h"
+#include "search.h"
 
 
 int
@@ -23,6 +27,7 @@ main(int argc, char *argv[])
 	char c = ' ';
 	char *h = "-h";
 	char *infile = NULL;
+	struct stat stats;
 
 	if (argc < 3) {
 		if ((argc == 2) && (strstr(argv[1], h) != NULL)) {
@@ -79,6 +84,15 @@ main(int argc, char *argv[])
 	else
 		fout = stdout;
 
+	/* checking if input dirname is not an file */
+	if (stat(dirname, &stats) < 0)
+			errx(2, "problem with stat on file %s\n", dirname);
+
+	if (!S_ISDIR(stats.st_mode)) {
+		search(dirname);
+		return (0);
+	}
+
 	/* creating worker threads */
 	for (i = 0; i < NUM_THREADS; ++i) {
 		if ((erro =
@@ -86,8 +100,9 @@ main(int argc, char *argv[])
 		    errx(1, "pthread_create: %s", strerror(erro));
 	}
 	// fprintf(stderr, "threads created\n");
+	
+	explor(dirname,true);
 
-	explor(dirname, true);
 
 	for (i = 0; i < NUM_THREADS; ++i) {
 		pthread_join(thread[i], NULL);
