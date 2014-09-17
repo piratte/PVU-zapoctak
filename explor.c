@@ -87,7 +87,10 @@ thr_run(void *x) {
 
 		char *src = get_src();
 		pthread_mutex_unlock(arrmut);
-		search(src);
+		if (mapon)
+			msearch(src);
+		else
+			search(src);
 		free(src);
 		pthread_mutex_lock(arrmut);
 	}

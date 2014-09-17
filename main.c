@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <string.h>
 
 #include <errno.h>
 #include <err.h>
@@ -59,8 +60,11 @@ main(int argc, char *argv[])
 	for (i = 0; i < optc; ++i)
 		optv[i] = argv[i];
 
-	while ((c = getopt(optc, optv, "lho:")) != -1) {
+	while ((c = getopt(optc, optv, "mlho:")) != -1) {
 		switch (c) {
+			case 'm':
+				mapon = true;
+				break;
 			case 'l':
 				loutput = true;
 				break;
@@ -84,12 +88,21 @@ main(int argc, char *argv[])
 	else
 		fout = stdout;
 
+	if (mapon) {
+		int len = strlen(needle);
+		zpet = (int *) malloc(sizeof(int)*len);
+		zpet = hrany(needle, zpet, len);
+	}
+
 	/* checking if input dirname is not an file */
 	if (stat(dirname, &stats) < 0)
 			errx(2, "problem with stat on file %s\n", dirname);
 
 	if (!S_ISDIR(stats.st_mode)) {
-		search(dirname);
+		if (mapon)
+			msearch(dirname);
+		else
+			search(dirname);
 		return (0);
 	}
 
@@ -100,21 +113,47 @@ main(int argc, char *argv[])
 		    errx(1, "pthread_create: %s", strerror(erro));
 	}
 	// fprintf(stderr, "threads created\n");
-	
-	explor(dirname,true);
+
+	explor(dirname, true);
 
 
 	for (i = 0; i < NUM_THREADS; ++i) {
 		pthread_join(thread[i], NULL);
 	}
 	// fprintf(stderr, "all done\n");
-
+	free(zpet);
 	return (0);
 }
 
 void print_usage(char *prog) {
-	fprintf(stderr, "usage: %s [-l] [-o OUTFILE] PATTERN DIR\n", prog);
+	fprintf(stderr, "usage: %s [-lm] [-o OUTFILE] PATTERN DIR\n", prog);
 	fprintf(stderr, "parameter -l turns on context output\n");
+	fprintf(stderr, "parameter -m forces using of mmap\n");
 	fprintf(stderr, "-o OUTFILE specifies the output file,");
 	fprintf(stderr, " default is stdout\n");
+}
+
+int *hrany(char *pattern, int *out, int len) {
+	int n = 0;
+	int i;
+
+	out[0] = 0; // out[0] is always 0
+	i = 1;
+
+	// the loop calculates out[i] for i = 1 to len-1
+	while (i < len) {
+		if (pattern[i] == pattern[n]) {
+			n++;
+			out[i] = n;
+			i++;
+		} else /* (pattern[i] != pattern[n]) */ {
+			if (n != 0)
+				n = out[n-1];
+			else {
+				out[i] = 0;
+				i++;
+			}
+		}
+	}
+	return (out);
 }

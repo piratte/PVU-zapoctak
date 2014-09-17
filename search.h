@@ -9,4 +9,7 @@ char *addres(char *out, char *prev, char *cur, char *next);
 
 char *join(const char *s1, const char *s2);
 
+bool msearch(char *filename);
+char *mjoin(const char *out, char *start, const char *end);
+
 #endif /* __SEARCH_H */
